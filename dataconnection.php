@@ -39,14 +39,59 @@ class KonnektKonnektion{
         echo "</pre>";
     }
 
+    function generate_table_queries($table){
+        $this->generate_delete_function($table);
+    }
+
+    function generate_delete_function($table){
+        
+        $tbname = $table['name'];
+        $primaryname = $table['fields']['primary']['Field'];
+        define("$tbname"."_primary",$primaryname);
+        
+        $this->{"delete_$tbname"."_entry"} = function ($funcname,$value){
+            $tbname = preg_replace("#_entry#","",preg_replace("#delete_#","",$funcname));
+            $primaryname = constant("$tbname"."_primary");
+            $req = "DELETE FROM $tbname WHERE $primaryname = $value";
+            // echo $req;
+        }; 
+        foreach($table['fields']['usable'] as $field){
+            $this->{"delete_$tbname"."_entry_by_".$field['Field']} = function ($funcname,$value){
+                $funcnamearr = explode("_by_",$funcname);
+                $fieldname = $funcnamearr[1];
+                $tbname = preg_replace("#_entry#","",preg_replace("#delete_#","",$funcnamearr[0]));
+                $primaryname = constant("$tbname"."_primary");
+                $req = "DELETE FROM $tbname WHERE $fieldname = $value";
+                echo $req;
+            };  
+            $this->{"delete_$tbname"."_entry_by_".$field['Field']}('ehi');
+
+        }
+        $this->{"delete_$tbname"."_entry"}('test');
+        
+    }
+
+    function gettablefield($table,$name){
+        ($this->tables)
+    }
+
+    public function __call($name, $arguments){
+        $args = [$name];
+        foreach($arguments as $arg){
+            array_push($args,$arg);
+        }
+        return call_user_func_array($this->{$name}, $args);
+    }
+
     function generate_field_queries($tablename,$field){
-        $tail = "$tablename_$field";
-        generate_update_function($tablename,$field,$tail);
+        $tail = "$tablename"."_".$field['Field'];
+        $this->generate_update_function($tablename,$field,$tail);
     }
 
     function generate_update_function($tablename,$field,$tail){
         $fname = "update_$tail";
         $this->{$fname} = function($value){
+            // global $tablename;
             $fieldname = $field['Field'];
             $req = "UPDATE $tablename set $fieldname = ";
             if($field['Type']=='text' or $field['Type']=='char'){
@@ -63,12 +108,16 @@ class KonnektKonnektion{
         $fields=[];
         $fields['raw'] = [];
         $fields['usable'] = [];
+        $fields['primary'] = null;
         foreach($this->query("describe ".$tablename) as $key=>$field){
             $fields[$key] = [];
             array_push($fields['raw'],$field);
             if($field['Extra']!='auto_increment'){
-                $field = $this->generate_field_queries($tablename,$field);
+                $this->generate_field_queries($tablename,$field);
                 array_push($fields['usable'],$field);
+            }
+            if($field['Key']=='PRI'){
+                $fields['primary']=$field;
             }
         }
         return $fields;
