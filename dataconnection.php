@@ -6,7 +6,7 @@ class KonnektKonnektion{
     private $dbpass = null;
     private $dbhost = null;
     private $dbname = null;
-
+    private $tables = [];
 
     function gotconnection(){
         return $this->connection != null;
@@ -27,11 +27,21 @@ class KonnektKonnektion{
     }
 
     function getdatabasetables(){
-        foreach($dataconnection->query('show tables') as $key=>$table){
-            print_r($table);
-            echo $key ;
+        $this->tables = [];
+        foreach($this->query('show tables') as $key=>$table){
+            $this->tables[$key] = [];
+            $this->tables[$key]['name'] = $table[0];
+            $this->tables[$key]['fields'] = $this->learntablefields($table[0]);
         }
-        // $dataconnection->query("describe ".$dataconnection->query('show tables')[0][0])
+        echo "<pre>";
+            print_r($this->tables);
+        echo "</pre>";
+    }
+
+    function learntablefields($tablename){
+        $fields=[];
+
+        return $fields;
     }
 
     function query($query,$dofetch=true){
