@@ -63,16 +63,46 @@ class KonnektKonnektion{
                 $primaryname = constant("$tbname"."_primary");
                 $req = "DELETE FROM $tbname WHERE $fieldname = $value";
                 echo $req;
-            };  
+            };
             $this->{"delete_$tbname"."_entry_by_".$field['Field']}('ehi');
+            $tail = "$tbname"."_".$field['Field'];  
+            $fname = "update_$tail";
+            $this->{$fname} = function($value){
+                $funcnamearr = explode("_by_",$funcname);
+                $fieldname = $funcnamearr[1];
+
+                $tbname = preg_replace("#_entry#","",preg_replace("#delete_#","",$funcnamearr[0]));
+                $fieldname = $field['Field'];
+                $req = "UPDATE $tbname set $fieldname = ";
+                if($field['Type']=='text' or $field['Type']=='char'){
+                    $req = "$req '";
+                }
+                $req=$value;
+                if($field['Type']=='text' or $field['Type']=='char'){
+                    $req = "$req'";
+                }
+            };
 
         }
-        $this->{"delete_$tbname"."_entry"}('test');
         
     }
 
-    function gettablefield($table,$name){
-        ($this->tables)
+    function gettablefielddata($table,$name){
+        $match = null;
+        $table = $this->gettabledata();
+        if(!$table)return $match;
+        foreach($table['fields']['raw'] as $field){
+            if($field['Field']==$name) $match = $field;
+        }
+        return $match;
+    }
+
+    function gettabledata($table){
+        $match = null;
+        foreach($this->tables as $table){
+            if($table['name']==$table) $match = $table;
+        }
+        return $match;
     }
 
     public function __call($name, $arguments){
@@ -83,26 +113,6 @@ class KonnektKonnektion{
         return call_user_func_array($this->{$name}, $args);
     }
 
-    function generate_field_queries($tablename,$field){
-        $tail = "$tablename"."_".$field['Field'];
-        $this->generate_update_function($tablename,$field,$tail);
-    }
-
-    function generate_update_function($tablename,$field,$tail){
-        $fname = "update_$tail";
-        $this->{$fname} = function($value){
-            // global $tablename;
-            $fieldname = $field['Field'];
-            $req = "UPDATE $tablename set $fieldname = ";
-            if($field['Type']=='text' or $field['Type']=='char'){
-                $req = "$req '";
-            }
-            $req=$value;
-            if($field['Type']=='text' or $field['Type']=='char'){
-                $req = "$req'";
-            }
-        };        
-    }
 
     function learntablefields($tablename){
         $fields=[];
@@ -113,7 +123,6 @@ class KonnektKonnektion{
             $fields[$key] = [];
             array_push($fields['raw'],$field);
             if($field['Extra']!='auto_increment'){
-                $this->generate_field_queries($tablename,$field);
                 array_push($fields['usable'],$field);
             }
             if($field['Key']=='PRI'){
