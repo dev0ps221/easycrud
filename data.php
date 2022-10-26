@@ -1,7 +1,7 @@
 <?php
 
     include('dataconnection.php');
-    $dataconnection = new CrudtKonnektion();
+    $dataconnection = new CrudKonnektion();
     if($dataconnection->__connect()){
         $dataconnection->getdatabasetables(); 
     }

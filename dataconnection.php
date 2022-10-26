@@ -47,7 +47,7 @@ class CrudKonnektion{
         $this->generate_delete_function($table);
         $this->generate_update_function($table);
         $this->generate_select_function($table);
-        $this->select_chatmod_entry(5);
+        $this->select_chatmod_entries();
     }
 
     function generate_update_function($table){
@@ -87,6 +87,12 @@ class CrudKonnektion{
         
         
         $tbname = $table['name'];
+        $this->{"delete_$tbname"."_entries"} = function ($funcname){
+            $tbname = preg_replace("#_entries#","",preg_replace("#delete_#","",$funcname));
+            $req = "DELETE FROM $tbname";
+            $result = $this->query($req);
+            return $result;
+        }; 
         $this->{"delete_$tbname"."_entry"} = function ($funcname,$value){
             $tbname = preg_replace("#_entry#","",preg_replace("#delete_#","",$funcname));
             $primaryname = constant("$tbname"."_primary");
