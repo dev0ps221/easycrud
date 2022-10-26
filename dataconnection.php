@@ -1,5 +1,5 @@
 <?php
-class KonnektKonnektion{
+class CrudKonnektion{
     
     private $connection = null;
     private $dbuser = null;
