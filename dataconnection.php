@@ -53,7 +53,6 @@ class KonnektKonnektion{
             $tbname = preg_replace("#_entry#","",preg_replace("#delete_#","",$funcname));
             $primaryname = constant("$tbname"."_primary");
             $req = "DELETE FROM $tbname WHERE $primaryname = $value";
-            // echo $req;
         }; 
         foreach($table['fields']['usable'] as $field){
             $this->{"delete_$tbname"."_entry_by_".$field['Field']} = function ($funcname,$value){
@@ -64,22 +63,25 @@ class KonnektKonnektion{
                 $req = "DELETE FROM $tbname WHERE $fieldname = $value";
                 echo $req;
             };
-            $this->{"delete_$tbname"."_entry_by_".$field['Field']}('ehi');
             $tail = "$tbname"."_".$field['Field'];  
             $fname = "update_$tail";
-            $this->{$fname} = function($value){
-                $funcnamearr = explode("_by_",$funcname);
-                $fieldname = $funcnamearr[1];
-
-                $tbname = preg_replace("#_entry#","",preg_replace("#delete_#","",$funcnamearr[0]));
+            $this->{$fname} = function($funcname,$value){
+                $funcnamearr = explode("_",$funcname);
+                $fieldname = $funcnamearr[2];
+                $tbname = $funcnamearr[1];
+                $field = $this->gettablefielddata($tbname,$fieldname);
                 $fieldname = $field['Field'];
                 $req = "UPDATE $tbname set $fieldname = ";
-                if($field['Type']=='text' or $field['Type']=='char'){
-                    $req = "$req '";
-                }
-                $req=$value;
-                if($field['Type']=='text' or $field['Type']=='char'){
-                    $req = "$req'";
+                if(in_array($field['Field'],['password','pwd'])){
+                    $req="$req"."password('$value')";
+                }else{
+                    if($field['Type']=='text' or $field['Type']=='char'){
+                        $req = "$req '";
+                    }
+                    $req="$req$value";
+                    if($field['Type']=='text' or $field['Type']=='char'){
+                        $req = "$req'";
+                    }
                 }
             };
 
@@ -89,7 +91,8 @@ class KonnektKonnektion{
 
     function gettablefielddata($table,$name){
         $match = null;
-        $table = $this->gettabledata();
+        $table = $this->gettabledata($table);
+        
         if(!$table)return $match;
         foreach($table['fields']['raw'] as $field){
             if($field['Field']==$name) $match = $field;
@@ -99,8 +102,8 @@ class KonnektKonnektion{
 
     function gettabledata($table){
         $match = null;
-        foreach($this->tables as $table){
-            if($table['name']==$table) $match = $table;
+        foreach($this->tables as $tbl){
+            if($tbl['name']==$table) $match = $tbl;
         }
         return $match;
     }
