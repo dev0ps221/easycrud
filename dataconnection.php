@@ -40,32 +40,23 @@ class KonnektKonnektion{
     }
 
     function generate_table_queries($table){
-        $this->generate_delete_function($table);
-    }
-
-    function generate_delete_function($table){
         
         $tbname = $table['name'];
         $primaryname = $table['fields']['primary']['Field'];
         define("$tbname"."_primary",$primaryname);
-        
-        $this->{"delete_$tbname"."_entry"} = function ($funcname,$value){
-            $tbname = preg_replace("#_entry#","",preg_replace("#delete_#","",$funcname));
-            $primaryname = constant("$tbname"."_primary");
-            $req = "DELETE FROM $tbname WHERE $primaryname = $value";
-        }; 
+        $this->generate_delete_function($table);
+        $this->generate_update_function($table);
+        $this->generate_select_function($table);
+        $this->select_chatmod_entry(5);
+    }
+
+    function generate_update_function($table){
+
+        $tbname = $table['name'];
         foreach($table['fields']['usable'] as $field){
-            $this->{"delete_$tbname"."_entry_by_".$field['Field']} = function ($funcname,$value){
-                $funcnamearr = explode("_by_",$funcname);
-                $fieldname = $funcnamearr[1];
-                $tbname = preg_replace("#_entry#","",preg_replace("#delete_#","",$funcnamearr[0]));
-                $primaryname = constant("$tbname"."_primary");
-                $req = "DELETE FROM $tbname WHERE $fieldname = $value";
-                echo $req;
-            };
             $tail = "$tbname"."_".$field['Field'];  
             $fname = "update_$tail";
-            $this->{$fname} = function($funcname,$value){
+            $this->{$fname} = function($funcname,$value,$where=""){
                 $funcnamearr = explode("_",$funcname);
                 $fieldname = $funcnamearr[2];
                 $tbname = $funcnamearr[1];
@@ -83,6 +74,70 @@ class KonnektKonnektion{
                         $req = "$req'";
                     }
                 }
+                if($where){
+                    $req ="$req WHERE $where"; 
+                }
+                $result = $this->query($req);
+                return $result;
+            };
+        }
+    }
+
+    function generate_delete_function($table){
+        
+        
+        $tbname = $table['name'];
+        $this->{"delete_$tbname"."_entry"} = function ($funcname,$value){
+            $tbname = preg_replace("#_entry#","",preg_replace("#delete_#","",$funcname));
+            $primaryname = constant("$tbname"."_primary");
+            $req = "DELETE FROM $tbname WHERE $primaryname = $value";
+            $result = $this->query($req);
+            return $result;
+        }; 
+        foreach($table['fields']['usable'] as $field){
+            $this->{"delete_$tbname"."_entry_by_".$field['Field']} = function ($funcname,$value){
+                $funcnamearr = explode("_by_",$funcname);
+                $fieldname = $funcnamearr[1];
+                $tbname = preg_replace("#_entry#","",preg_replace("#delete_#","",$funcnamearr[0]));
+                $primaryname = constant("$tbname"."_primary");
+                $req = "DELETE FROM $tbname WHERE $fieldname = $value";
+                $result = $this->query($req);
+                return $result;
+            };
+
+        }
+        
+    }
+
+    function generate_select_function($table){
+        
+        
+        $tbname = $table['name'];
+        $this->{"select_$tbname"."_entries"} = function ($funcname,$target="*"){
+            $tbname = preg_replace("#_entries#","",preg_replace("#select_#","",$funcname));
+            $req = "select $target FROM $tbname ";
+            echo $req;
+            $result = $this->query($req);
+            return $result;
+        };
+        $this->{"select_$tbname"."_entry"} = function ($funcname,$value,$target="*"){
+            $tbname = preg_replace("#_entry#","",preg_replace("#select_#","",$funcname));
+            $primaryname = constant("$tbname"."_primary");
+            $req = "select $target FROM $tbname WHERE $primaryname = $value";
+            echo $req;
+            $result = $this->query($req);
+            return $result;
+        }; 
+        foreach($table['fields']['raw'] as $field){
+            $this->{"select_$tbname"."_entry_by_".$field['Field']} = function ($funcname,$value,$target="*"){
+                $funcnamearr = explode("_by_",$funcname);
+                $fieldname = $funcnamearr[1];
+                $tbname = preg_replace("#_entry#","",preg_replace("#select_#","",$funcnamearr[0]));
+                $primaryname = constant("$tbname"."_primary");
+                $req = "select $target FROM $tbname WHERE $fieldname = $value";
+                echo $req;
+                $result = $this->query($req);
+                return $result;
             };
 
         }
