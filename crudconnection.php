@@ -84,6 +84,9 @@ class CrudConnection{
             }
             $req = "INSERT INTO $tbname ($fieldsstring) VALUES ($valsstring)";
             $result = $this->query($req);
+            if (is_array($result)){
+                return $this->connection->lastInsertId();
+            }
             return $result;
         };
     }
@@ -230,6 +233,11 @@ class CrudConnection{
         return $fields;
     }
 
+
+    function getconn(){
+        return $this->connection;
+    }
+
     function query($query,$dofetch=true){
         $action =   $this->connection->query($query);
         if($action){
@@ -246,7 +254,7 @@ class CrudConnection{
         }
     }
 
-    function __construct($dbhost='',$dbuser='root',$dbpass='',$dbname='konnektdata'){
+    function __construct($dbhost='',$dbuser='root',$dbpass='',$dbname='pilaut'){
         $this->dbhost = $dbhost;
         $this->dbuser = $dbuser;
         $this->dbpass = $dbpass;
