@@ -8,6 +8,22 @@ class CrudConnection{
     private $dbname = null;
     private $tables = [];
 
+    function set_dbname($dbname){
+        $this->dbname = $dbname ;
+    }
+
+    function set_dbuser($dbuser){
+        $this->dbuser = $dbuser ;
+    }
+
+    function set_dbpass($dbpass){
+        $this->dbpass = $dbpass ;
+    }
+
+    function set_dbhost($dbhost){
+        $this->dbhost = $dbhost ;
+    }
+
     function gotconnection(){
         return $this->connection != null;
     }
