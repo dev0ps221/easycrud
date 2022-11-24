@@ -8,22 +8,6 @@ class CrudConnection{
     private $dbname = null;
     private $tables = [];
 
-    function set_dbname($dbname){
-        $this->dbname = $dbname ;
-    }
-
-    function set_dbuser($dbuser){
-        $this->dbuser = $dbuser ;
-    }
-
-    function set_dbpass($dbpass){
-        $this->dbpass = $dbpass ;
-    }
-
-    function set_dbhost($dbhost){
-        $this->dbhost = $dbhost ;
-    }
-
     function gotconnection(){
         return $this->connection != null;
     }
@@ -115,11 +99,15 @@ class CrudConnection{
             $fname = "update_$tail";
             $this->{$fname} = function($funcname,$value,$where=""){
                 $funcnamearr = explode("_",$funcname);
-                $fieldname = $funcnamearr[2];
                 $tbname = $funcnamearr[1];
+                array_shift($funcnamearr);
+                array_shift($funcnamearr);
+                $fieldname = implode('_',$funcnamearr);;
                 $field = $this->gettablefielddata($tbname,$fieldname);
                 $fieldname = $field['Field'];
+                error_log($fieldname. ' is the updated field');
                 $req = "UPDATE $tbname set $fieldname = ";
+                $value=addslashes($value);
                 if(in_array($field['Field'],['password','pwd'])){
                     $req="$req"."password('$value')";
                 }else{
@@ -134,6 +122,7 @@ class CrudConnection{
                 if($where){
                     $req ="$req WHERE $where"; 
                 }
+                error_log($req);
                 $result = $this->query($req);
                 return $result;
             };
@@ -270,7 +259,7 @@ class CrudConnection{
         }
     }
 
-    function __construct($dbhost='',$dbuser='root',$dbpass='',$dbname='pilaut'){
+    function __construct($dbhost='',$dbuser='root',$dbpass='',$dbname=''){
         $this->dbhost = $dbhost;
         $this->dbuser = $dbuser;
         $this->dbpass = $dbpass;
