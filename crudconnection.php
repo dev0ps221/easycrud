@@ -67,7 +67,7 @@ class CrudConnection{
             $fieldsstring = "";
             $valsstring = "";
             $processvalstring = function ($field,$val){
-                if(in_array($field['Field'],['password','pwd'])){
+                if(in_array($field['Field'],['password','pwd','pass'])){
                     $valstr = "password('$val')";
                 }else{
                     if(in_array($field['Type'],['text','char','longtext'])){
@@ -108,7 +108,7 @@ class CrudConnection{
                 error_log($fieldname. ' is the updated field');
                 $req = "UPDATE $tbname set $fieldname = ";
                 $value=addslashes($value);
-                if(in_array($field['Field'],['password','pwd'])){
+                if(in_array($field['Field'],['password','pwd','pass'])){
                     $req="$req"."password('$value')";
                 }else{
                     if($field['Type']=='text' or $field['Type']=='char'){
