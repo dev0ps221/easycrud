@@ -67,11 +67,15 @@ class CrudConnection{
             $fieldsstring = "";
             $valsstring = "";
             $processvalstring = function ($field,$val){
-                if(in_array($field['Field'],['password','pwd','pass'])){
+                if(in_array($field['Field'],['password','pwd'])){
                     $valstr = "password('$val')";
                 }else{
                     if(in_array($field['Type'],['text','char','longtext'])){
-                        $valstr = "'".addslashes($val)."'";
+                        if($val == 'null'){
+                            $valstr = 'null';
+                        }else{
+                            $valstr = "'".addslashes($val)."'";
+                        }
                     }else{
                         $valstr = $val;
                     }
@@ -99,16 +103,13 @@ class CrudConnection{
             $fname = "update_$tail";
             $this->{$fname} = function($funcname,$value,$where=""){
                 $funcnamearr = explode("_",$funcname);
+                $fieldname = $funcnamearr[2];
                 $tbname = $funcnamearr[1];
-                array_shift($funcnamearr);
-                array_shift($funcnamearr);
-                $fieldname = implode('_',$funcnamearr);;
                 $field = $this->gettablefielddata($tbname,$fieldname);
                 $fieldname = $field['Field'];
-                error_log($fieldname. ' is the updated field');
                 $req = "UPDATE $tbname set $fieldname = ";
                 $value=addslashes($value);
-                if(in_array($field['Field'],['password','pwd','pass'])){
+                if(in_array($field['Field'],['password','pwd'])){
                     $req="$req"."password('$value')";
                 }else{
                     if($field['Type']=='text' or $field['Type']=='char'){
@@ -259,7 +260,7 @@ class CrudConnection{
         }
     }
 
-    function __construct($dbhost='',$dbuser='root',$dbpass='',$dbname=''){
+    function __construct($dbhost='',$dbuser='root',$dbpass='',$dbname='samashop_simple'){
         $this->dbhost = $dbhost;
         $this->dbuser = $dbuser;
         $this->dbpass = $dbpass;
